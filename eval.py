@@ -30,6 +30,7 @@ tf.app.flags.DEFINE_integer('batch_size', 128, 'Number of samples per batch.')
 def score(predictions, labels):
     """Calculate the number of correct predictions in the batch."""    
     correct = 0
+    coverage = 0
     total = len(predictions[0])
     for index in range(total):
         p0 = np.argmax(predictions[0][index])
@@ -62,9 +63,28 @@ def score(predictions, labels):
             result = False
         if l0 > 4 and l5 != p5:
             result = False
-        correct += 1 if result else 0
+        if result:
+            correct += 1
+
+        pct = 0
+        if l0 == 0:
+            pct = np.exp(predictions[0][index][l0])
+        elif l0 == 1:
+            pct = np.exp(predictions[0][index][l0] + predictions[1][index][l1])
+        elif l0 == 2:
+             pct = np.exp(predictions[0][index][l0] + predictions[1][index][l1] + predictions[2][index][l2])
+        elif l0 == 3:
+            pct = np.exp(predictions[0][index][l0] + predictions[1][index][l1] + predictions[2][index][l2] + predictions[3][index][l3])
+        elif l0 == 4:
+            pct = np.exp(predictions[0][index][l0] + predictions[1][index][l1] + predictions[2][index][l2] + predictions[3][index][l3] + predictions[4][index][l4])
+        elif l0 == 5:
+            pct = np.exp(predictions[0][index][l0] + predictions[1][index][l1] + predictions[2][index][l2] + predictions[3][index][l3] + predictions[4][index][l4] + predictions[5][index][l5])
+        elif l0 == 6:
+             pct = np.exp(predictions[0][index][l0])
+        if pct >= 0.98:
+            coverage += 1
         
-    return correct, total
+    return correct, coverage, total
     
 def run_evaluation():
     """Run an evaluation loop on the data set to compute accuracy."""
@@ -104,6 +124,7 @@ def run_evaluation():
             
             # Loop through evaluation data to calculate accuracy.
             total_correct = 0
+            total_coverage = 0
             total_samples = 0
             try:
                 while not coord.should_stop():
@@ -112,16 +133,18 @@ def run_evaluation():
                         labels[0], labels[1], labels[2], labels[3], labels[4], labels[5]
                     ]
                     p0, p1, p2, p3, p4, p5, y0, y1, y2, y3, y4, y5 = sess.run(run_ops)
-                    correct, total = score([p0, p1, p2, p3, p4, p5], [y0, y1, y2, y3, y4, y5])
+                    correct, coverage, total = score([p0, p1, p2, p3, p4, p5], [y0, y1, y2, y3, y4, y5])
                     total_correct += correct
+                    total_coverage += coverage
                     total_samples += total
-                    print('Accuracy: %d/%d = %.2f%%' % (correct, total, 100. * correct / total))
+                    print('Accuracy: %d/%d = %.2f%%, Coverage: %d/%d - %.2f%%' % (correct, total, 100. * correct / total, coverage, total, 100. * coverage / total))
             except tf.errors.OutOfRangeError:
                 print('Finished processing data.')
                 coord.request_stop()
             
             # Print final accuracy count
-            print('Total Accuracy: %d/%d = %.2f%%' % (total_correct, total_samples, 100. * total_correct / total_samples))
+            print('Total Accuracy: %d/%d = %.2f%%,  Coverage: %d/%d - %.2f%%' % (total_correct, total_samples, 100. * total_correct / total_samples,  total_coverage, total_samples, 100. * total_coverage / total_samples))
+            print('Coverage at 98%:')
             
             # Wait for threads
             coord.join(threads)
