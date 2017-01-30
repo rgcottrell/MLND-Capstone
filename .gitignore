@@ -1,1 +1,14 @@
+.DS_Store
+*.pyc
+extra.csv
+test.csv
+train.csv
+train-1.csv
+train-2.csv
+train-3.csv
+train-4.csv
+extra/
 logs/
+train/
+test/
+__pycache__/
