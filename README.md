@@ -23,6 +23,7 @@ Several Python scripts are available to train the model:
 * ```train.py```: Use this script to train the model. Training with an NVIDIA Titan X (Pascal) GPU will take approximately three days to reach 95% accuracy.
 * ```eval.py```: Use this script to periodically evaluate the validation set during training. After finishing training, run with ```-set=test``` to calculate accuracy and coverage on the test set.
 * ```predict.py```: Use this script to make predictions on new images in the ```predict``` directory. Images should be 64x64 jpegs. Results will be available in ```predict.csv```.
+* ```export.py```: Use this script to extract the trained model in a format suitable for use in external applications.
 
 Two Python utility modules are used for training and evaluation.
 
